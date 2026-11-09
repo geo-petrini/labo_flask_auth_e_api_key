@@ -48,6 +48,61 @@ class Role(db.Model):
         }
 
 
+class Series(db.Model):
+    """Una serie richiesta da un utente e il suo stato di calcolo."""
+
+    STATUS_PENDING = 'pending'
+    STATUS_RUNNING = 'running'
+    STATUS_DONE = 'done'
+    STATUS_ERROR = 'error'
+
+    STATUS_LABELS = {
+        STATUS_PENDING: 'In attesa',
+        STATUS_RUNNING: 'In calcolo',
+        STATUS_DONE: 'Completata',
+        STATUS_ERROR: 'Errore',
+    }
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    expression = db.Column(db.String(500), nullable=False)
+    start = db.Column(db.Integer, nullable=False)
+    end = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default=STATUS_PENDING)
+    result = db.Column(db.Float, nullable=True)
+    error = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=func.now())
+    started_at = db.Column(db.DateTime, nullable=True)
+    finished_at = db.Column(db.DateTime, nullable=True)
+
+    user = db.relationship(
+        'User', backref=db.backref('series', lazy='select', cascade='all, delete-orphan')
+    )
+
+    @property
+    def status_label(self):
+        return self.STATUS_LABELS.get(self.status, self.status)
+
+    @property
+    def is_finished(self):
+        return self.status in (self.STATUS_DONE, self.STATUS_ERROR)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'expression': self.expression,
+            'start': self.start,
+            'end': self.end,
+            'status': self.status,
+            'result': self.result,
+            'error': self.error,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'started_at': self.started_at.isoformat() if self.started_at else None,
+            'finished_at': self.finished_at.isoformat() if self.finished_at else None,
+        }
+
+
 def seed_admin():
     """Create the admin/user roles and the default admin user (idempotent)."""
     admin_username = os.getenv('SEED_ADMIN_USERNAME', 'admin')
