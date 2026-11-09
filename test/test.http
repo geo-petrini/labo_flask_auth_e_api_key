@@ -8,3 +8,22 @@ GET {{host}}/series/1
 
 ### post serie (redirect a login) con 302
 POST {{host}}/series/new
+
+
+
+### API get tutte le serie
+GET {{host}}/api/series
+
+### API get serie
+GET {{host}}/api/series/3
+
+
+### API post serie
+POST {{host}}/api/series
+Content-Type: application/json
+
+{
+  "expression": "x**2",
+  "start": 1,
+  "end": 10
+}
