@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Risultato serie #{{ series_id }} - Calcolatore di serie{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-1">Risultato serie #{{ series_id }}</h1>
+                <p class="text-muted mb-0">Dettaglio del calcolo richiesto.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="{{ url_for('frontend.series_input') }}">Nuova serie</a>
+        </div>
+
+        {% if series is defined and series %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h5">Dati della serie</h2>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Formula</dt>
+                        <dd class="col-sm-9"><code>{{ series.expression }}</code></dd>
+                        <dt class="col-sm-3">Intervallo</dt>
+                        <dd class="col-sm-9">{{ series.start }} &ndash; {{ series.end }}</dd>
+                        <dt class="col-sm-3">Stato</dt>
+                        <dd class="col-sm-9">{{ series.status }}</dd>
+                    </dl>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h5">Risultato</h2>
+                {% if result is defined and result is not none %}
+                    <p class="display-6 mb-0">{{ result }}</p>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        Il risultato non è ancora disponibile. La serie è in attesa
+                        di essere elaborata dal worker.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a class="btn btn-link px-0" href="{{ url_for('frontend.home') }}">&larr; Torna alla home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

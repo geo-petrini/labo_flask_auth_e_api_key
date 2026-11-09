@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Nuova serie - Calcolatore di serie{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-1">Nuova serie</h1>
+                <p class="text-muted mb-0">Inserisci la formula e l'intervallo da calcolare.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="{{ url_for('frontend.home') }}">Annulla</a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" action="{{ url_for('frontend.series_input') }}">
+                    <div class="mb-3">
+                        <label for="expression" class="form-label">Formula</label>
+                        <input type="text" class="form-control" id="expression" name="expression"
+                               value="{{ request.form.get('expression', '') }}"
+                               placeholder="es. cos(x), x**2, 1/x" required autofocus>
+                        <div class="form-text">Usa <code>x</code> come variabile della serie.</div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="start" class="form-label">Inizio</label>
+                            <input type="number" class="form-control" id="start" name="start"
+                                   value="{{ request.form.get('start', 1) }}" step="1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="end" class="form-label">Fine</label>
+                            <input type="number" class="form-control" id="end" name="end"
+                                   value="{{ request.form.get('end', 100) }}" step="1" required>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4 mb-0">
+                        Il calcolo verrà elaborato da un worker in background.
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary">Calcola serie</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
