@@ -20,6 +20,9 @@
                 <ul class="navbar-nav ms-auto align-items-lg-center">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('frontend.series_history') }}">Le mie serie</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('frontend.series_input') }}">Nuova serie</a>
                         </li>
                         {% if current_user.is_admin %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Le mie serie - Calcolatore di serie{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Le mie serie</h1>
+        <p class="text-muted mb-0">{{ series_list|length }} serie richieste.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('frontend.series_input') }}">Nuova serie</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Formula</th>
+                    <th>Intervallo</th>
+                    <th>Stato</th>
+                    <th>Risultato</th>
+                    <th>Richiesta il</th>
+                    <th>Completata il</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for series in series_list %}
+                    {% set badge_class = {
+                        'pending': 'text-bg-secondary',
+                        'running': 'text-bg-info',
+                        'done': 'text-bg-success',
+                        'error': 'text-bg-danger'
+                    }.get(series.status, 'text-bg-secondary') %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('frontend.series_output', series_id=series.id) }}">#{{ series.id }}</a>
+                        </td>
+                        <td><code>{{ series.expression }}</code></td>
+                        <td class="text-nowrap">{{ series.start }} &ndash; {{ series.end }}</td>
+                        <td>
+                            <span class="badge {{ badge_class }}">{{ series.status_label }}</span>
+                        </td>
+                        <td>
+                            {% if series.status == 'done' and series.result is not none %}
+                                {{ series.result }}
+                            {% elif series.status == 'error' %}
+                                <span class="text-danger">{{ series.error or 'Errore sconosciuto.' }}</span>
+                            {% else %}
+                                <span class="text-muted">&mdash;</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-nowrap">
+                            {{ series.created_at.strftime('%d/%m/%Y %H:%M:%S') if series.created_at else '—' }}
+                        </td>
+                        <td class="text-nowrap">
+                            {{ series.finished_at.strftime('%d/%m/%Y %H:%M:%S') if series.finished_at else '—' }}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            Non hai ancora calcolato nessuna serie.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

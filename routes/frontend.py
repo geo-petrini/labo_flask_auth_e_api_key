@@ -28,6 +28,19 @@ def home():
     return render_template('default.html')
 
 
+@frontend_bp.route('/series')
+@login_required
+def series_history():
+    """Elenco delle serie richieste dall'utente corrente."""
+    series_list = (
+        Series.query
+        .filter_by(user_id=current_user.id)
+        .order_by(Series.created_at.desc(), Series.id.desc())
+        .all()
+    )
+    return render_template('series/history.html', series_list=series_list)
+
+
 @frontend_bp.route('/series/new', methods=['GET', 'POST'])
 @login_required
 def series_input():
