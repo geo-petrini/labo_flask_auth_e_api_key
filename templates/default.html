@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Calcolatore di serie{% endblock %}
+
+{% block content %}
+<div class="hero p-4 p-md-5 mb-4 rounded-3">
+    <h1 class="display-6 fw-semibold">Calcolatore di serie</h1>
+    <p class="lead mb-3">
+        Un'applicazione Flask per calcolare serie matematiche, con autenticazione
+        utente, ruoli e un'API protetta da API key.
+    </p>
+    {% if not session.get('user_id') %}
+        <a class="btn btn-primary" href="/register">Registrati</a>
+        <a class="btn btn-outline-secondary" href="/login">Accedi</a>
+    {% endif %}
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5 card-title">Calcolo delle serie</h2>
+                <p class="card-text mb-0">
+                    Inserisci una formula e un intervallo: il calcolo viene
+                    elaborato da un worker dedicato.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5 card-title">Utenti e ruoli</h2>
+                <p class="card-text mb-0">
+                    Registrazione e login per gli utenti, con ruoli separati
+                    per utenti e amministratori.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5 card-title">API</h2>
+                <p class="card-text mb-0">
+                    Le funzionalità sono disponibili anche tramite API,
+                    autenticata con una API key.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
