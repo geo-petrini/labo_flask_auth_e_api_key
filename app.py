@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_login import LoginManager
 from flask_migrate import Migrate
 
 from config import Config
@@ -10,6 +11,18 @@ from routes.frontend import frontend_bp
 
 
 migrate = Migrate()
+login_manager = LoginManager()
+login_manager.login_view = 'frontend.login'
+login_manager.login_message = 'Effettua il login per continuare.'
+login_manager.login_message_category = 'warning'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    try:
+        return db.session.get(User, int(user_id))
+    except (TypeError, ValueError):
+        return None
 
 
 def create_app(config_class=Config):
@@ -18,6 +31,7 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     migrate.init_app(app, db)
+    login_manager.init_app(app)
 
     app.register_blueprint(frontend_bp)
     app.register_blueprint(api_bp)

@@ -9,9 +9,9 @@
         Un'applicazione Flask per calcolare serie matematiche, con autenticazione
         utente, ruoli e un'API protetta da API key.
     </p>
-    {% if not session.get('user_id') %}
-        <a class="btn btn-primary" href="/register">Registrati</a>
-        <a class="btn btn-outline-secondary" href="/login">Accedi</a>
+    {% if not current_user.is_authenticated %}
+        <a class="btn btn-primary" href="{{ url_for('frontend.register') }}">Registrati</a>
+        <a class="btn btn-outline-secondary" href="{{ url_for('frontend.login') }}">Accedi</a>
     {% endif %}
 </div>
 
