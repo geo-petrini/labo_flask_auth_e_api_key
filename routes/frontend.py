@@ -14,7 +14,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
 from models.conn import db
-from models.model import Role, Series, User
+from models.model import ApiKey, Role, Series, User
 from worker import enqueue_series, validate_series_input
 
 
@@ -98,6 +98,52 @@ def series_output(series_id):
         result=series.result,
         series_id=series.id,
     )
+
+
+@frontend_bp.route('/api-keys')
+@login_required
+def api_keys():
+    """Pagina di gestione della chiave API dell'utente corrente."""
+    api_key = ApiKey.query.filter_by(user_id=current_user.id).first()
+    return render_template('api_keys.html', api_key=api_key)
+
+
+@frontend_bp.route('/api-keys', methods=['POST'])
+@login_required
+def create_api_key():
+    """Genera una nuova chiave API, sostituendo quella esistente."""
+    existing = ApiKey.query.filter_by(user_id=current_user.id).first()
+    if existing is not None:
+        db.session.delete(existing)
+        db.session.flush()
+
+    api_key = ApiKey(user_id=current_user.id, key=ApiKey.generate_key())
+    db.session.add(api_key)
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        flash('Non è stato possibile generare la chiave API.', 'danger')
+        return redirect(url_for('frontend.api_keys'))
+
+    flash('Chiave API generata.', 'success')
+    return redirect(url_for('frontend.api_keys'))
+
+
+@frontend_bp.route('/api-keys/delete', methods=['POST'])
+@login_required
+def delete_api_key():
+    """Elimina la chiave API dell'utente corrente."""
+    api_key = ApiKey.query.filter_by(user_id=current_user.id).first()
+    if api_key is None:
+        flash('Nessuna chiave API da eliminare.', 'warning')
+    else:
+        db.session.delete(api_key)
+        db.session.commit()
+        flash('Chiave API eliminata.', 'info')
+
+    return redirect(url_for('frontend.api_keys'))
 
 
 @frontend_bp.route('/register', methods=['GET', 'POST'])

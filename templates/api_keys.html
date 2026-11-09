@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Chiave API - Calcolatore di serie{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="mb-4">
+            <h1 class="h3 mb-1">Chiave API</h1>
+            <p class="text-muted mb-0">Gestisci la chiave usata per autenticare le chiamate API.</p>
+        </div>
+
+        {% if api_key %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h5">La tua chiave</h2>
+                    <p class="text-muted">
+                        Usa questa chiave nell'header
+                        <code>Authorization: Bearer &lt;chiave&gt;</code>.
+                    </p>
+
+                    <input type="text" class="form-control font-monospace user-select-all"
+                           value="{{ api_key.key }}" readonly>
+
+                    <div class="text-muted small mt-2">
+                        Generata il
+                        {{ api_key.created_at.strftime('%d/%m/%Y %H:%M:%S') if api_key.created_at else '—' }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <form method="post" action="{{ url_for('frontend.create_api_key') }}"
+                      onsubmit="return confirm('Rigenerare la chiave? La chiave attuale smetterà di funzionare.');">
+                    <button class="btn btn-outline-primary" type="submit">Rigenera chiave</button>
+                </form>
+                <form method="post" action="{{ url_for('frontend.delete_api_key') }}"
+                      onsubmit="return confirm('Eliminare la chiave API? Le chiamate API smetteranno di funzionare.');">
+                    <button class="btn btn-outline-danger" type="submit">Elimina chiave</button>
+                </form>
+            </div>
+        {% else %}
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h5">Nessuna chiave API</h2>
+                    <p class="text-muted mb-3">
+                        Puoi generare una chiave per autenticare le chiamate API.
+                        Ogni utente può avere al massimo una chiave.
+                    </p>
+                    <form method="post" action="{{ url_for('frontend.create_api_key') }}">
+                        <button class="btn btn-primary" type="submit">Genera chiave</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="alert alert-info mt-4 mb-0">
+            La chiave identifica il tuo utente: le serie create via API vengono
+            assegnate a te e l'elenco API mostra solo le tue serie.
+        </div>
+    </div>
+</div>
+{% endblock %}

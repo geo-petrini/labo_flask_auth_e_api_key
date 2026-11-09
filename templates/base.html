@@ -25,6 +25,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('frontend.series_input') }}">Nuova serie</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('frontend.api_keys') }}">Chiave API</a>
+                        </li>
                         {% if current_user.is_admin %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin</a>
