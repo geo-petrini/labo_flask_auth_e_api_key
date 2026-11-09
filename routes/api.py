@@ -1,15 +1,13 @@
-from flask import Blueprint, jsonify, request, url_for
+from functools import wraps
+
+from flask import Blueprint, g, jsonify, request, url_for
 
 from models.conn import db
-from models.model import Series
+from models.model import ApiKey, Series
 from worker import enqueue_series, validate_series_input
 
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
-
-# In questa fase l'API non ha autenticazione: le serie create vengono
-# assegnate a un utente fisso. In futuro l'API key identificherà l'utente.
-API_USER_ID = 1
 
 
 def _parse_int(value):
@@ -27,11 +25,33 @@ def _parse_int(value):
     raise ValueError
 
 
+def api_key_required(view):
+    """Richiede l'header Authorization: Bearer <chiave API>."""
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        header = request.headers.get('Authorization', '')
+        parts = header.split(None, 1)
+        if len(parts) != 2 or parts[0].lower() != 'bearer' or not parts[1].strip():
+            return jsonify({'error': 'Chiave API mancante.'}), 401
+
+        api_key = ApiKey.query.filter_by(key=parts[1].strip()).first()
+        if api_key is None or api_key.user is None:
+            return jsonify({'error': 'Chiave API non valida.'}), 401
+
+        g.api_key = api_key
+        g.api_user = api_key.user
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
 @api_bp.route('/series', methods=['GET'])
+@api_key_required
 def list_series():
-    """Restituisce tutte le serie, dalla più recente."""
+    """Restituisce le serie dell'utente associato alla chiave API."""
     series_list = (
         Series.query
+        .filter_by(user_id=g.api_user.id)
         .order_by(Series.created_at.desc(), Series.id.desc())
         .all()
     )
@@ -39,9 +59,12 @@ def list_series():
 
 
 @api_bp.route('/series/<int:series_id>', methods=['GET'])
+@api_key_required
 def get_series(series_id):
-    """Restituisce una singola serie."""
-    series = db.session.get(Series, series_id)
+    """Restituisce una serie dell'utente associato alla chiave API."""
+    series = Series.query.filter_by(
+        id=series_id, user_id=g.api_user.id
+    ).first()
     if series is None:
         return jsonify({'error': 'Serie non trovata.'}), 404
 
@@ -49,8 +72,9 @@ def get_series(series_id):
 
 
 @api_bp.route('/series', methods=['POST'])
+@api_key_required
 def create_series():
-    """Crea una nuova serie e la accoda per il calcolo."""
+    """Crea una nuova serie per l'utente associato alla chiave API."""
     payload = request.get_json(silent=True)
     if not isinstance(payload, dict):
         return jsonify({'error': 'Body JSON non valido.'}), 400
@@ -72,7 +96,7 @@ def create_series():
         return jsonify({'error': str(exc)}), 400
 
     series = Series(
-        user_id=API_USER_ID,
+        user_id=g.api_user.id,
         expression=expression,
         start=start,
         end=end,
