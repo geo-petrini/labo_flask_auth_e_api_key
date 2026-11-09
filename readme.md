@@ -8,3 +8,18 @@ Il calcolo delle serie viene fatto tramite un worker separato che consulta una c
 Utenti, ruoli, chiavi e serie sono salvati in DB relazionale sqlite, usando flask_sqlalchemy, flask_migrate. 
 L'autenticazione user viene fatta con flask_login, il ruolo controllato tramite decoratore, le routes API controllate tramite decoratore.
 
+## Setup ambiente di sviluppo
+Creare venv e attivarlo
+```
+python -m venv .venv
+.venv\scripts\activate
+pip install -r requirements
+```
+
+Avviare
+```
+flask db init
+flask db upgrade
+flask seed
+flask run o python app.py
+```
