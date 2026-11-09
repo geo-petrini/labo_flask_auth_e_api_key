@@ -1,19 +1,28 @@
 {% extends 'base.html' %}
 
-{% block title %}Risultato serie #{{ series_id }} - Calcolatore di serie{% endblock %}
+{% set current_series_id = series.id if series is defined and series else series_id %}
+
+{% block title %}Risultato serie #{{ current_series_id }} - Calcolatore di serie{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="h3 mb-1">Risultato serie #{{ series_id }}</h1>
+                <h1 class="h3 mb-1">Risultato serie #{{ current_series_id }}</h1>
                 <p class="text-muted mb-0">Dettaglio del calcolo richiesto.</p>
             </div>
             <a class="btn btn-outline-secondary" href="{{ url_for('frontend.series_input') }}">Nuova serie</a>
         </div>
 
         {% if series is defined and series %}
+            {% set badge_class = {
+                'pending': 'text-bg-secondary',
+                'running': 'text-bg-info',
+                'done': 'text-bg-success',
+                'error': 'text-bg-danger'
+            }.get(series.status, 'text-bg-secondary') %}
+
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
                     <h2 class="h5">Dati della serie</h2>
@@ -23,7 +32,19 @@
                         <dt class="col-sm-3">Intervallo</dt>
                         <dd class="col-sm-9">{{ series.start }} &ndash; {{ series.end }}</dd>
                         <dt class="col-sm-3">Stato</dt>
-                        <dd class="col-sm-9">{{ series.status }}</dd>
+                        <dd class="col-sm-9">
+                            <span class="badge {{ badge_class }}">{{ series.status_label }}</span>
+                        </dd>
+                        <dt class="col-sm-3">Richiesta il</dt>
+                        <dd class="col-sm-9">
+                            {{ series.created_at.strftime('%d/%m/%Y %H:%M:%S') if series.created_at else '—' }}
+                        </dd>
+                        {% if series.finished_at %}
+                            <dt class="col-sm-3">Completata il</dt>
+                            <dd class="col-sm-9 mb-0">
+                                {{ series.finished_at.strftime('%d/%m/%Y %H:%M:%S') }}
+                            </dd>
+                        {% endif %}
                     </dl>
                 </div>
             </div>
@@ -32,12 +53,23 @@
         <div class="card shadow-sm">
             <div class="card-body">
                 <h2 class="h5">Risultato</h2>
-                {% if result is defined and result is not none %}
+
+                {% if series is defined and series and series.status == 'done' and result is not none %}
                     <p class="display-6 mb-0">{{ result }}</p>
+                {% elif series is defined and series and series.status == 'error' %}
+                    <div class="alert alert-danger mb-0">
+                        <strong>Calcolo non riuscito.</strong>
+                        <div class="mt-1">{{ series.error or 'Errore sconosciuto.' }}</div>
+                    </div>
+                {% elif series is defined and series and series.status == 'running' %}
+                    <div class="alert alert-info mb-0 d-flex align-items-center gap-2">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span>La serie è in fase di calcolo. La pagina si aggiorna automaticamente.</span>
+                    </div>
                 {% else %}
-                    <div class="alert alert-info mb-0">
-                        Il risultato non è ancora disponibile. La serie è in attesa
-                        di essere elaborata dal worker.
+                    <div class="alert alert-info mb-0 d-flex align-items-center gap-2">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span>Il risultato non è ancora disponibile. La serie è in attesa di essere elaborata dal worker.</span>
                     </div>
                 {% endif %}
             </div>
@@ -48,4 +80,13 @@
         </div>
     </div>
 </div>
+
+{% if series is defined and series and not series.is_finished %}
+    {# Polling semplice: ricarica la pagina finché il worker non ha finito. #}
+    <script>
+        setTimeout(function () {
+            window.location.reload();
+        }, 2000);
+    </script>
+{% endif %}
 {% endblock %}
