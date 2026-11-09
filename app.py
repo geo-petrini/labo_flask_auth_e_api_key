@@ -4,7 +4,7 @@ from flask_migrate import Migrate
 
 from config import Config
 from models.conn import db
-from models.model import Role, Series, User, seed_admin
+from models.model import ApiKey, Role, Series, User, seed_admin
 from routes.admin import admin_bp
 from routes.api import api_bp
 from routes.frontend import frontend_bp
@@ -42,10 +42,6 @@ def create_app(config_class=Config):
     # START_WORKER permette di disattivarlo (es. nei test o nei comandi CLI).
     if app.config.get('START_WORKER', True):
         start_worker(app)
-
-    @app.shell_context_processor
-    def shell_context():
-        return {'db': db, 'User': User, 'Role': Role, 'Series': Series}
 
     @app.cli.command('seed')
     def seed():
