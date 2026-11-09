@@ -1,4 +1,5 @@
 @host = http://localhost:5000
+@apiKey = sk_inserisci-qui-la-tua-chiave
 
 GET {{host}}
 
@@ -13,13 +14,16 @@ POST {{host}}/series/new
 
 ### API get tutte le serie
 GET {{host}}/api/series
+Authorization: Bearer {{apiKey}}
 
 ### API get serie
 GET {{host}}/api/series/3
+Authorization: Bearer {{apiKey}}
 
 
 ### API post serie
 POST {{host}}/api/series
+Authorization: Bearer {{apiKey}}
 Content-Type: application/json
 
 {
