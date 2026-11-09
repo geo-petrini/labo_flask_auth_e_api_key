@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Utenti - Dashboard admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Utenti</h1>
+        <p class="text-muted mb-0">{{ users|length }} utenti registrati.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Ruolo</th>
+                    <th>Admin</th>
+                    <th>Registrato il</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.role %}
+                                <span class="badge text-bg-secondary">{{ user.role.role_name }}</span>
+                            {% else %}
+                                <span class="text-muted">&mdash;</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_admin %}
+                                <span class="badge text-bg-success">Sì</span>
+                            {% else %}
+                                <span class="text-muted">No</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-nowrap">
+                            {{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else '—' }}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Nessun utente registrato.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

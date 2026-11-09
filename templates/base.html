@@ -19,6 +19,11 @@
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav ms-auto align-items-lg-center">
                     {% if current_user.is_authenticated %}
+                        {% if current_user.is_admin %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin</a>
+                            </li>
+                        {% endif %}
                         <li class="nav-item">
                             <span class="navbar-text me-lg-3">{{ current_user.username }}</span>
                         </li>
