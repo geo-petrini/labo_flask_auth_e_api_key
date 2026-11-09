@@ -1,12 +1,21 @@
 import re
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
 from models.conn import db
-from models.model import Role, User
+from models.model import Role, Series, User
+from worker import enqueue_series, validate_series_input
 
 
 frontend_bp = Blueprint('frontend', __name__)
@@ -24,9 +33,36 @@ def home():
 def series_input():
     """Input di una nuova serie da calcolare."""
     if request.method == 'POST':
-        # TODO: validare formula/intervallo, salvare la serie e accodare il task.
-        flash('Calcolo non ancora implementato.', 'info')
-        return redirect(url_for('frontend.series_input'))
+        expression = (request.form.get('expression') or '').strip()
+
+        try:
+            start = int(request.form.get('start'))
+            end = int(request.form.get('end'))
+        except (TypeError, ValueError):
+            flash('Inizio e fine devono essere numeri interi.', 'danger')
+            return render_template('series/new.html')
+
+        try:
+            expression, start, end = validate_series_input(expression, start, end)
+        except ValueError as exc:
+            flash(str(exc), 'danger')
+            return render_template('series/new.html')
+
+        series = Series(
+            user_id=current_user.id,
+            expression=expression,
+            start=start,
+            end=end,
+            status=Series.STATUS_PENDING,
+        )
+        db.session.add(series)
+        db.session.commit()
+
+        enqueue_series(series.id)
+        flash('Serie accodata: il calcolo è in corso.', 'info')
+        return redirect(
+            url_for('frontend.series_output', series_id=series.id)
+        )
 
     return render_template('series/new.html')
 
@@ -35,8 +71,20 @@ def series_input():
 @login_required
 def series_output(series_id):
     """Output/risultato di una serie calcolata."""
-    # TODO: caricare la serie e il relativo risultato dal DB.
-    return render_template('series/result.html', series_id=series_id)
+    series = db.session.get(Series, series_id)
+    if series is None:
+        abort(404)
+
+    # Un utente può vedere solo le proprie serie; gli admin vedono tutto.
+    if series.user_id != current_user.id and not current_user.is_admin:
+        abort(404)
+
+    return render_template(
+        'series/result.html',
+        series=series,
+        result=series.result,
+        series_id=series.id,
+    )
 
 
 @frontend_bp.route('/register', methods=['GET', 'POST'])
