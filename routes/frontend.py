@@ -19,6 +19,26 @@ def home():
     return render_template('default.html')
 
 
+@frontend_bp.route('/series/new', methods=['GET', 'POST'])
+@login_required
+def series_input():
+    """Input di una nuova serie da calcolare."""
+    if request.method == 'POST':
+        # TODO: validare formula/intervallo, salvare la serie e accodare il task.
+        flash('Calcolo non ancora implementato.', 'info')
+        return redirect(url_for('frontend.series_input'))
+
+    return render_template('series/new.html')
+
+
+@frontend_bp.route('/series/<int:series_id>')
+@login_required
+def series_output(series_id):
+    """Output/risultato di una serie calcolata."""
+    # TODO: caricare la serie e il relativo risultato dal DB.
+    return render_template('series/result.html', series_id=series_id)
+
+
 @frontend_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
